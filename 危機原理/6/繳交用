@@ -1,0 +1,1008 @@
+### 1.LED0~ LED 10 來回亮一次 <br> 2.從中間的LED7, LED8 開始往兩旁亮，然後在往回中間亮一次。
+```C
+#define NUM 25 
+int leds[NUM] = {
+  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, D14, D15};
+
+void setup() {               
+  for(int i = 0; i < NUM; i++){
+    pinMode(leds[i], OUTPUT);
+    digitalWrite(leds[i], HIGH);
+  }    
+}
+
+void loop() {
+  int cnt=0;
+
+  for(int i = 0; i < 11; i++){
+    digitalWrite(leds[i], LOW);
+    delay(500);
+    digitalWrite(leds[i], HIGH);
+  }
+  for(int i = 9; i >= 0; i--){
+    digitalWrite(leds[i], LOW);
+    delay(500);
+    digitalWrite(leds[i], HIGH);
+  }
+
+  for (int i=0; i<8; i++)
+  {
+    digitalWrite(leds[8+i], LOW);
+    digitalWrite(leds[7-i], LOW);
+    delay(500);
+    digitalWrite(leds[8+i], HIGH);
+    digitalWrite(leds[7-i], HIGH);
+  }
+  for (int i=1; i<8; i++)
+  {
+    digitalWrite(leds[i], LOW);
+    digitalWrite(leds[15-i], LOW);
+    delay(500);
+    digitalWrite(leds[i], HIGH);
+    digitalWrite(leds[15-i], HIGH);
+  }
+}
+```
+# 題號: 2 (七段顯示器 最左digital 1, 最右digital 4, だから)
+### 1.從按鈕 1 到按鈕 4 (`Button1~4`) 對應到 4 個 七段顯示器分別產生 2 、 0 、 2 、 1 。 <br> 2.七段顯示器能做出數字 8 單字左移 <br> 3.按下按鈕 1 到按鈕 4 (`Button1~4`) 在顯示器上顯示 1~4 ，讓顯示的字出現在顯示器上依 按下的順序由左往右排列，最後按下的按鍵其代表的數字顯示於最右邊的七段顯示器上 (digit 4)
+#### Q2-1.ino
+```C
+#define LATCH_DIO D15   
+#define CLK_DIO D14
+#define DATA_DIO 2
+#define BUTTON1 BT1
+#define BUTTON2 BT2
+#define BUTTON3 BT3
+#define BUTTON4 BT4
+#define BUTTON_A1 A1
+#define BUTTON_A2 A2
+#define BUTTON_A3 A3
+
+const byte SEGMENT_MAP[] = {0x3F,0x06,0x5b,0x4F,0x66,0x6D,0x7D,0x27,0X7F,0X67,0X77,0x7c,0x39,0X5e,0x79,0x71};
+
+
+const byte SEGMENT_SELECT[] = {0xFE,0xFD,0xFB,0xF7};
+void setup ()
+{
+
+pinMode(LATCH_DIO,OUTPUT);
+pinMode(CLK_DIO,OUTPUT);
+pinMode(DATA_DIO,OUTPUT);
+}
+
+void loop()
+{
+
+if(!digitalRead(BUTTON1))
+{
+WriteNumberToSegment(0 , 2);
+}  
+if(!digitalRead(BUTTON2))
+{
+WriteNumberToSegment(1 ,0);
+} 
+if(!digitalRead(BUTTON3))
+{
+WriteNumberToSegment(2 , 2);
+}  
+if(!digitalRead(BUTTON4))
+{
+WriteNumberToSegment(3 , 1);
+}  
+}
+
+void WriteNumberToSegment(byte Segment, byte Value)
+{
+digitalWrite(LATCH_DIO,LOW);
+shiftOut(DATA_DIO, CLK_DIO, MSBFIRST, SEGMENT_MAP[Value]);
+shiftOut(DATA_DIO, CLK_DIO, MSBFIRST, SEGMENT_SELECT[Segment] );
+digitalWrite(LATCH_DIO,HIGH);
+}
+```
+### 2.七段顯示器能做出數字8 單字左移
+#### Q2-2.ino 
+```C
+#define LATCH_DIO D15   
+#define CLK_DIO D14
+#define DATA_DIO 2
+#define BUTTON1 BT1
+#define BUTTON2 BT2
+#define BUTTON3 BT3
+#define BUTTON4 BT4
+#define BUTTON_A1 A1
+#define BUTTON_A2 A2
+#define BUTTON_A3 A3
+
+const byte SEGMENT_MAP[] = {0x3F,0x06,0x5b,0x4F,0x66,0x6D,0x7D,0x27,0X7F,0X67,0X77,0x7c,0x39,0X5e,0x79,0x71};
+
+
+const byte SEGMENT_SELECT[] = {0xFE,0xFD,0xFB,0xF7};
+void setup ()
+{
+
+pinMode(LATCH_DIO,OUTPUT);
+pinMode(CLK_DIO,OUTPUT);
+pinMode(DATA_DIO,OUTPUT);
+}
+
+void loop()
+{
+  for(int j=0; j<4; j++){
+  WriteNumberToSegment(3-j,8); 
+  delay(100);
+  }
+}
+
+
+void WriteNumberToSegment(byte Segment, byte Value)
+{
+digitalWrite(LATCH_DIO,LOW);
+shiftOut(DATA_DIO, CLK_DIO, MSBFIRST, SEGMENT_MAP[Value]);
+shiftOut(DATA_DIO, CLK_DIO, MSBFIRST, SEGMENT_SELECT[Segment] );
+digitalWrite(LATCH_DIO,HIGH);
+}
+```
+#### [若要跑全部字型碼請參考連結 Q2-2.ino](https://github.com/ChengHan16/Cs4high_4080E036/blob/master/%E5%BE%AE%E7%AE%97%E6%A9%9F%E5%8E%9F%E7%90%86%E8%88%87%E5%AF%A6%E7%BF%92%E3%80%8A109-2%E3%80%8B/AC%E6%8A%80%E8%A1%93%E8%83%BD%E5%8A%9B%E6%AA%A2%E5%AE%9A/%E3%80%8A2%E3%80%8B04-14%20ACET-%E5%AF%A6%E4%BD%9C%E9%A1%8C-Q2.md)
+```C
+  WriteNumberToSegment(3,8);
+  delay(100);
+  WriteNumberToSegment(2,8);
+  delay(100);
+  WriteNumberToSegment(1,8);
+  delay(100);
+  WriteNumberToSegment(0,8);
+  delay(100);
+```
+### 3.按下按鈕 1 到按鈕 4 `(Button1~4)` 在顯示器上顯示 1~4 ，讓顯示的字出現在顯示器上依 按下的順序由左往右排列，最後按下的按鍵其代表的數字顯示於最右邊的七段顯示器上 (digit 4)
+#### Q2-3.ino
+```C
+#define LATCH_DIO D15   
+#define CLK_DIO D14
+#define DATA_DIO 2
+#define BUTTON1 BT1
+#define BUTTON2 BT2
+#define BUTTON3 BT3
+#define BUTTON4 BT4
+#define BUTTON_A1 A1
+#define BUTTON_A2 A2
+#define BUTTON_A3 A3
+
+const byte SEGMENT_MAP[] = {0x3F,0x06,0x5b,0x4F,0x66,0x6D,0x7D,0x27,0X7F,0X67,0X77,0x7c,0x39,0X5e,0x79,0x71};
+
+
+const byte SEGMENT_SELECT[] = {0xFE,0xFD,0xFB,0xF7};
+void setup ()
+{
+
+pinMode(LATCH_DIO,OUTPUT);
+pinMode(CLK_DIO,OUTPUT);
+pinMode(DATA_DIO,OUTPUT);
+}
+
+int cnt=0;
+char databuf[]={0x00, 0x00, 0x0, 0x0};
+void shiftbuf(char *buf, byte data)
+{
+  for(int i=0 ; i<3 ; i++){
+    *(buf+i) = *(buf+i+1);
+  }
+  *(buf+3) = data;
+}
+void loop()
+{
+    unsigned long starttime=millis();
+    while((millis()-starttime<100))
+    {
+      WriteNumberToSegment(0, databuf[0]);
+      delay(2);
+      WriteNumberToSegment(1, databuf[1]);
+      delay(2);
+      WriteNumberToSegment(2, databuf[2]);
+      delay(2);
+      WriteNumberToSegment(3, databuf[3]);
+      delay(2);  
+    }
+    if(!digitalRead(BUTTON1)){
+      delay(10);
+        if(!digitalRead(BUTTON1))
+        {
+          shiftbuf(databuf,SEGMENT_MAP[1]);
+          while(!digitalRead(BUTTON1));
+        }
+    }
+    if(!digitalRead(BUTTON2)){
+      delay(10);
+        if(!digitalRead(BUTTON2))
+        {
+          shiftbuf(databuf,SEGMENT_MAP[2]);
+          while(!digitalRead(BUTTON2));
+        }
+    }
+    if(!digitalRead(BUTTON3)){
+      delay(10);
+        if(!digitalRead(BUTTON3))
+        {
+          shiftbuf(databuf,SEGMENT_MAP[3]);
+          while(!digitalRead(BUTTON3));
+        }
+    }
+    if(!digitalRead(BUTTON4)){
+      delay(10);
+        if(!digitalRead(BUTTON4))
+        {
+          shiftbuf(databuf,SEGMENT_MAP[4]);
+          while(!digitalRead(BUTTON4));
+        }
+    }
+}
+
+void WriteNumberToSegment(byte Segment, byte Value)
+{
+digitalWrite(LATCH_DIO,LOW);
+shiftOut(DATA_DIO, CLK_DIO, MSBFIRST, Value);
+shiftOut(DATA_DIO, CLK_DIO, MSBFIRST, SEGMENT_SELECT[Segment] );
+digitalWrite(LATCH_DIO,HIGH);
+}
+```
+#### 也可這樣
+```C
+*buf=*(buf+1);
+*(buf+1)=*(buf+2);
+*(buf+2)=*(buf+3);
+*(buf+3) = data;
+```
+# 題號: 3
+### 1. <br> &thinsp;&thinsp; 執行按鈕 1~ A 時 LCD 顯示” 1 、 2 、 3 、 A  <br> &thinsp;&thinsp; 執行按鈕 4 B 時 LCD 顯示 4 、 5 、 6 、 B  <br> &thinsp;&thinsp; 執行按鈕 7 C 時 LCD 顯示 7 、 8 、 9 、 C  <br> &thinsp;&thinsp; 執行按鈕 `*`、 0 、`#` 、 D 時 LC D 顯示” `*`、 0 、`#` 、 D 
+### 2. ADP-CORVETTE F1 的 LC D 顯示： 20 20 年 1 2 月 24 日 1X 時 XX 分及 XX 秒 即時時鐘 的格式。
+#### Q3-1.ino
+```C
+#include <LiquidCrystal.h>
+
+LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+char KeyValue[]={'1','2','3','A','4','5','6','B','7','8','9','C','*','0','#','D'};
+byte Row=0, Col=0;
+
+void setup() {
+ 
+  pinMode(10, INPUT);                             
+  pinMode(11, INPUT_PULLUP); 
+  pinMode(12, INPUT_PULLUP); 
+  pinMode(13, INPUT_PULLUP);
+  pinMode(A0, OUTPUT);
+  pinMode(A1, OUTPUT); 
+  pinMode(A2, OUTPUT);
+  pinMode(A3, OUTPUT); 
+
+  digitalWrite(A0,HIGH);
+  digitalWrite(A1,HIGH);
+  digitalWrite(A2,HIGH);
+  digitalWrite(A3,HIGH);
+  lcd.begin(16, 2);            
+  lcd.setCursor(0,0);
+  for(int i=0; i<3;i++)
+  {
+    lcd.print("Key Martrix Test");
+    delay(1000);
+    lcd.clear();
+    delay(400);
+  }
+} 
+
+void loop() {
+  static int keypressedcount=0;
+  byte keyindex=0;
+  if(keyscan()==true) 
+  {
+    keyindex=(Row-1)*4+Col-1;
+    delay(5);
+    if ((keyscan()==true) && (keyindex==(Row-1)*4+Col-1))
+    {
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print(KeyValue[keyindex]);
+      digitalWrite(A0,LOW);
+      digitalWrite(A1,LOW);
+      digitalWrite(A2,LOW);
+      digitalWrite(A3,LOW);
+      delayMicroseconds(100);
+      while( (digitalRead(10)==LOW) || (digitalRead(11)==LOW) ||(digitalRead(12)==LOW) || (digitalRead(13)==LOW))
+        ;
+    }
+  } 
+}
+
+bool keyscan( )
+{
+  Row=0;Col=0;
+  bool keypressed = false;
+  digitalWrite(A0, LOW);
+  digitalWrite(A1, HIGH);
+  digitalWrite(A2, HIGH);
+  digitalWrite(A3, HIGH);
+  delayMicroseconds(100);
+
+  if(digitalRead(10)==LOW)
+  {
+      digitalWrite(A0, HIGH);
+      Col=1;Row=1;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(11)==LOW)
+  {
+      digitalWrite(A0, HIGH);
+      Col=1;Row=2;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(12)==LOW)
+  {
+      digitalWrite(A0, HIGH);
+      Col=1;Row=3;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(13)==LOW)
+  {
+       digitalWrite(A0, HIGH);
+      Col=1;Row=4;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  digitalWrite(A0, HIGH);
+  digitalWrite(A1, LOW);
+  digitalWrite(A2, HIGH);
+  digitalWrite(A3, HIGH);
+  delayMicroseconds(100);
+
+  if(digitalRead(10)==LOW)
+  {
+      digitalWrite(A1, HIGH);
+      Col=2;Row=1;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(11)==LOW)
+  {
+      digitalWrite(A1, HIGH);
+      Col=2;Row=2;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(12)==LOW)
+  {
+      digitalWrite(A1, HIGH);
+      Col=2;Row=3;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(13)==LOW)
+  {
+      digitalWrite(A1, HIGH);
+      Col=2;Row=4;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  digitalWrite(A0, HIGH);
+  digitalWrite(A1, HIGH);
+  digitalWrite(A2, LOW);
+  digitalWrite(A3, HIGH);
+  delayMicroseconds(100);
+
+  if(digitalRead(10)==LOW)
+  {
+      digitalWrite(A2, HIGH);
+      Col=3;Row=1;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(11)==LOW)
+  {
+      digitalWrite(A2, HIGH);
+      Col=3;Row=2;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(12)==LOW)
+  {
+      digitalWrite(A2, HIGH);
+      Col=3;Row=3;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(13)==LOW)
+  {
+      digitalWrite(A2, HIGH);
+      Col=3;Row=4;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  digitalWrite(A0, HIGH);
+  digitalWrite(A1, HIGH);
+  digitalWrite(A2, HIGH);
+  digitalWrite(A3, LOW);
+  delayMicroseconds(100);
+
+  if(digitalRead(10)==LOW)
+  {
+      digitalWrite(A3, HIGH);
+      Col=4;Row=1;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(11)==LOW)
+  {
+      digitalWrite(A3, HIGH);
+      Col=4;Row=2;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(12)==LOW)
+  {
+      digitalWrite(A3, HIGH);
+      Col=4;Row=3;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(13)==LOW)
+  {
+       digitalWrite(A3, HIGH);
+      Col=4;Row=4;
+      keypressed = true;
+      return(keypressed);
+  }
+  return(false);
+}
+```
+#### 七段矩陣
+```C
+#define LATCH_DIO D15 
+#define CLK_DIO D14 
+#define DATA_DIO 2 
+
+
+const byte KeyMap[]={0x06,0x5b,0x4F,0X77,
+                     0x66,0x6D,0x7D,0x7c,
+                     0x27,0X7F,0X67,0x39,
+                     0x79,0x3F,0x71,0X5e, 0};
+const byte SEGMENT_SELECT[] = {0xFE,0xFD,0xFB,0xF7};
+byte Row=0, Col=0;
+
+
+void setup() {
+
+  pinMode(LATCH_DIO,OUTPUT);
+  pinMode(CLK_DIO,OUTPUT);
+  pinMode(DATA_DIO,OUTPUT);
+  pinMode(10, INPUT); //R1: S1,S2,S3,S4 (1,2,3,A)                                   
+  pinMode(11, INPUT_PULLUP); //R2: S5,S6,S7,S8 (4,5,6,B)
+  pinMode(12, INPUT_PULLUP); //R3: S9, S10, S11,S12 (7,8,9,C)
+  pinMode(13, INPUT_PULLUP); //R4: (*,0,#,D) //*->E, #->F
+  pinMode(A0, OUTPUT); //A1, C1: S1,S5,S9 (1,4,7,*)
+  pinMode(A1, OUTPUT); //A2, C2: S2,S6,S10 (2,5,8,0)
+  pinMode(A2, OUTPUT); //A3, C3: S3,S7,S11 (3,6,9,#)
+  pinMode(A3, OUTPUT); //A4, C4, S4,S8,S12 (*,0, #,D)
+
+  for(int i=0; i<4; i++)
+    WriteNumberToSegment(i, 16);
+} 
+
+void loop() {
+
+  static int keypressedcount=0;
+  byte keyindex=0; 
+
+  if(keyscan()==true)
+  {
+    keyindex=(Row-1)*4+Col-1; 
+    delay(10);
+    if ((keyscan()==true) && (keyindex==(Row-1)*4+Col-1))
+    {
+      digitalWrite(A0,LOW);
+      digitalWrite(A1,LOW);
+      digitalWrite(A2,LOW);
+      digitalWrite(A3,LOW);
+      delayMicroseconds(100);
+      while( (digitalRead(10)==LOW) || (digitalRead(11)==LOW)||(digitalRead(12)==LOW) || (digitalRead(13)==LOW))
+        ;  
+      WriteNumberToSegment(3, keyindex);  
+    }
+  } 
+}
+
+bool keyscan( )
+{
+  Row=0;Col=0;
+  bool keypressed = false;
+
+  digitalWrite(A0, LOW);
+  digitalWrite(A1, HIGH);
+  digitalWrite(A2, HIGH);
+  digitalWrite(A3, HIGH);
+  delayMicroseconds(100);
+
+  if(digitalRead(10)==LOW)
+  {
+      digitalWrite(A0, HIGH);
+      Col=1;Row=1;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(11)==LOW)
+  {
+      digitalWrite(A0, HIGH);
+      Col=1;Row=2;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(12)==LOW)
+  {
+      digitalWrite(A0, HIGH);
+      Col=1;Row=3;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(13)==LOW)
+  {
+       digitalWrite(A0, HIGH);
+      Col=1;Row=4;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  digitalWrite(A0, HIGH);
+  digitalWrite(A1, LOW);
+  digitalWrite(A2, HIGH);
+  digitalWrite(A3, HIGH);
+  delayMicroseconds(100);
+
+  if(digitalRead(10)==LOW)
+  {
+      digitalWrite(A1, HIGH);
+      Col=2;Row=1;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(11)==LOW)
+  {
+      digitalWrite(A1, HIGH);
+      Col=2;Row=2;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(12)==LOW)
+  {
+      digitalWrite(A1, HIGH);
+      Col=2;Row=3;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(13)==LOW)
+  {
+      digitalWrite(A1, HIGH);
+      Col=2;Row=4;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  digitalWrite(A0, HIGH);
+  digitalWrite(A1, HIGH);
+  digitalWrite(A2, LOW);
+  digitalWrite(A3, HIGH);
+  delayMicroseconds(100);
+
+  if(digitalRead(10)==LOW)
+  {
+      digitalWrite(A2, HIGH);
+      Col=3;Row=1;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(11)==LOW)
+  {
+      digitalWrite(A2, HIGH);
+      Col=3;Row=2;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(12)==LOW)
+  {
+      digitalWrite(A2, HIGH);
+      Col=3;Row=3;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(13)==LOW)
+  {
+      digitalWrite(A2, HIGH);
+      Col=3;Row=4;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  digitalWrite(A0, HIGH);
+  digitalWrite(A1, HIGH);
+  digitalWrite(A2, HIGH);
+  digitalWrite(A3, LOW);
+  delayMicroseconds(100);
+
+  if(digitalRead(10)==LOW)
+  {
+      digitalWrite(A3, HIGH);
+      Col=4;Row=1;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(11)==LOW)
+  {
+      digitalWrite(A3, HIGH);
+      Col=4;Row=2;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(12)==LOW)
+  {
+      digitalWrite(A3, HIGH);
+      Col=4;Row=3;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(13)==LOW)
+  {
+      digitalWrite(A3, HIGH);
+      Col=4;Row=4;
+      keypressed = true;
+      return(keypressed);
+  }
+  return(false);
+}
+void WriteNumberToSegment(byte Segment, byte Value)
+{
+digitalWrite(LATCH_DIO,LOW);
+shiftOut(DATA_DIO, CLK_DIO, MSBFIRST, KeyMap[Value]);
+shiftOut(DATA_DIO, CLK_DIO, MSBFIRST, SEGMENT_SELECT[Segment] );
+digitalWrite(LATCH_DIO,HIGH);
+}
+```
+#### Q3-2.ino
+```C
+#include <LiquidCrystal.h>
+#include <RTC.h>
+ 
+
+LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+
+
+const byte seconds = 0;
+const byte minutes = 5;
+const byte hours = 14;
+const byte day = 17;
+
+void setup() {
+
+     lcd.begin(16, 2);
+
+
+     RTC.settime(day, hours, minutes, seconds);
+     RTC.startcounting();
+}
+
+void loop() {
+     lcd.clear();
+     lcd.print("2021/6/");
+     lcd.print(RTC.getday());
+     lcd.print(",");
+
+     lcd.print(RTC.gethours());
+     lcd.print(":");
+     lcd.print(RTC.getminutes());
+     lcd.print(":");
+     lcd.print(RTC.getseconds());
+        
+     delay(1000);
+}
+```
+# 題號: 4
+### 1.ADP-CORVETTE F1 的多功能板上蜂鳴器產生振動， 共 發 出 6 次聲音，第 1 次時間 1秒，每下次發出聲音時間增加一秒。 <br> 2.可依按鍵發出正確音符聲音，1 、 2 、 3 、 A 、4 、 5 、 6 、 B 分別代表 Do 、 Re 、 Mi 、 Fa 、Sol 、 La 、 Si 、 Do_H) 。 <br> 3.|1 1 5 5| 6 6 5 --| 4 4 3 3|2 2 1 --| 演奏小星星，第 2 、 4 小節最後是 代表 2 拍。
+#### Q4-1.ino
+```C
+int speakerPin = D3;
+char notes[] = "ccggaagffeeddc";
+unsigned long beats[] = {1,1,1,1,1,1,2,1,1,1,1,1,1,2,4};
+int musictones[] = {261, 294, 330, 349, 392, 440, 494, 523};
+int length = sizeof(notes);
+int tempo = 300;
+
+void setup() {
+  pinMode(speakerPin,OUTPUT);
+}
+
+void loop() {
+    for(int i=0; i<6; i++){
+      tone(speakerPin, 1000, duration);
+      delay((i+1)*1000);
+      noTone(speakerPin);
+    }
+  delay(3000);
+}
+```
+#### Q4-2.ino
+```C
+#define Do ((unsigned int) 262)
+#define Re ((unsigned int) 294)
+#define Mi ((unsigned int) 330)
+#define Fa ((unsigned int) 349)
+#define Sol ((unsigned int) 392)
+#define La_H ((unsigned int) 440)
+#define Si_H ((unsigned int) 494)
+#define Do_H ((unsigned int) 523)
+
+unsigned int KeyValue[]={Do, Re, Mi, Fa, Sol, La_H, Si_H, Do_H};
+
+byte Row=0, Col=0;
+
+void playNote(int OutputPin, unsigned int Note, unsigned long duration) {
+     tone(OutputPin, Note, duration);
+     delay(duration*1.1);
+   noTone(OutputPin);
+}
+
+void setup() {
+  
+  pinMode(10, INPUT);                             
+  pinMode(11, INPUT_PULLUP); 
+  pinMode(12, INPUT_PULLUP); 
+  pinMode(13, INPUT_PULLUP); 
+  pinMode(A0, OUTPUT);
+  pinMode(A1, OUTPUT);
+  pinMode(A2, OUTPUT);
+  pinMode(A3, OUTPUT); 
+  digitalWrite(A0,HIGH);
+  digitalWrite(A1,HIGH);
+  digitalWrite(A2,HIGH);
+  digitalWrite(A3,HIGH);
+} 
+
+void loop() {
+
+  static int keypressedcount=0;
+  byte keyindex=0;
+  if(keyscan()==true) 
+  {
+    keyindex=(Row-1)*2+Col-1;
+    delay(5);
+    if ((keyscan()==true) && (keyindex==(Row-1)*2+Col-1))
+    {
+      playNote(D3,  KeyValue[keyindex], 300); 
+    }
+  } 
+}
+
+bool keyscan( )
+{
+  Row=0;Col=0;
+  bool keypressed = false;
+
+  digitalWrite(A0, LOW);
+  digitalWrite(A1, HIGH);
+  digitalWrite(A2, HIGH);
+  digitalWrite(A3, HIGH);
+  delayMicroseconds(100);
+
+  if(digitalRead(10)==LOW)
+  {
+      digitalWrite(A0, HIGH);
+      Col=1;Row=1;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(11)==LOW)
+  {
+      digitalWrite(A0, HIGH);
+      Col=1;Row=2;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(12)==LOW)
+  {
+      digitalWrite(A0, HIGH);
+      Col=1;Row=3;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(13)==LOW)
+  {
+      digitalWrite(A0, HIGH);
+      Col=1;Row=4;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  digitalWrite(A0, HIGH);
+  digitalWrite(A1, LOW);
+  digitalWrite(A2, HIGH);
+  digitalWrite(A3, HIGH);
+  delayMicroseconds(100);
+
+  if(digitalRead(10)==LOW)
+  {
+      digitalWrite(A1, HIGH);
+      Col=2;Row=1;
+      keypressed = true;
+      return(keypressed);
+  }
+ 
+  if(digitalRead(11)==LOW)
+  {
+      digitalWrite(A1, HIGH);
+      Col=2;Row=2;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(12)==LOW)
+  {
+      digitalWrite(A1, HIGH);
+      Col=2;Row=3;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(13)==LOW)
+  {
+      digitalWrite(A1, HIGH);
+      Col=2;Row=4;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  digitalWrite(A0, HIGH);
+  digitalWrite(A1, HIGH);
+  digitalWrite(A2, LOW);
+  digitalWrite(A3, HIGH);
+  delayMicroseconds(100);
+
+  if(digitalRead(10)==LOW)
+  {
+      digitalWrite(A2, HIGH);
+      Col=3;Row=1;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(11)==LOW)
+  {
+      digitalWrite(A2, HIGH);
+      Col=3;Row=2;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(12)==LOW)
+  {
+      digitalWrite(A2, HIGH);
+      Col=3;Row=3;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(13)==LOW)
+  {
+      digitalWrite(A2, HIGH);
+      Col=3;Row=4;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  digitalWrite(A0, HIGH);
+  digitalWrite(A1, HIGH);
+  digitalWrite(A2, HIGH);
+  digitalWrite(A3, LOW);
+  delayMicroseconds(100);
+
+  if(digitalRead(10)==LOW)
+  {
+      digitalWrite(A3, HIGH);
+      Col=4;Row=1;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(11)==LOW)
+  {
+      digitalWrite(A3, HIGH);
+      Col=4;Row=2;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(12)==LOW)
+  {
+      digitalWrite(A3, HIGH);
+      Col=4;Row=3;
+      keypressed = true;
+      return(keypressed);
+  }
+
+  if(digitalRead(13)==LOW)
+  {
+      digitalWrite(A3, HIGH);
+      Col=4;Row=4;
+      keypressed = true;
+      return(keypressed);
+  }
+  return(false);
+}
+```
+#### Q4-3.ino
+```C
+#define Do ((unsigned int) 262)
+#define Re ((unsigned int) 294)
+#define Mi ((unsigned int) 330)
+#define Fa ((unsigned int) 349)
+#define Sol ((unsigned int) 392)
+#define La_H ((unsigned int) 440)
+#define Si_H ((unsigned int) 494)
+#define Do_H ((unsigned int) 523)
+unsigned int melody[]={Do,Do,Sol,Sol,La_H,La_H,Sol,Fa,Fa, Mi, Mi,Re,Re,Do, 
+                       Sol, Sol, Fa, Fa, Mi, Mi, Re, Sol, Sol, Fa, Fa, Mi, Mi, Re,
+                       Do,Do,Sol,Sol,La_H,La_H,Sol,Fa,Fa, Mi, Mi,Re,Re,Do};
+unsigned int beat[]={1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,
+                     1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,
+                     1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,2};
+int speakerPin = D3;
+
+unsigned int notes[] = {Do, Re, Mi, Fa, Sol, La_H, Si_H, Do_H};
+int length = sizeof(melody) / sizeof(melody[0]);
+int tempo = 300;
+
+void setup() {
+  pinMode(speakerPin, OUTPUT);
+  Serial.begin(115200);
+}
+
+void loop() {
+  for (int i = 0; i < length; i++) {
+      playNote(speakerPin, melody[i], tempo*beat[i]);
+      Serial.print(notes[i]);Serial.println("Hz");
+  }
+  Serial.println("************************************");
+  delay(2000);
+}
+
+void playNote(int OutputPin, unsigned int pitch, unsigned long duration) {
+     tone(OutputPin,pitch, duration);
+     delay(duration*1.2);
+   noTone(OutputPin);
+}
+```
